@@ -34,9 +34,3 @@ set(plugin_HDR
 
 # The add_plugin macro is provided by mc_rtc
 add_plugin(${PROJECT_NAME} "${plugin_SRC}" "${plugin_HDR}")
-
-
-
-
-
-
