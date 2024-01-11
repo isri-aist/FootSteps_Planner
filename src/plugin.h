@@ -31,12 +31,6 @@ struct footsteps_planner_plugin : public mc_control::GlobalPlugin
   ~footsteps_planner_plugin() override;
 
 private:
-  // std::vector<sva::MotionVecd> input_v_;
-  // std::vector<sva::PTransformd> input_steps_;
-  // std::vector<double> input_t_steps_;
-  // std::string support_foot_name_;
-  // sva::PTransformd support_foot_pose_;
-
   bool centered_ref_trajectory_ = false; // ref trajectory is centered on robot
 
   footsteps_planner::FootStepGen planner_;

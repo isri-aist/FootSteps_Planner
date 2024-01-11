@@ -1,7 +1,6 @@
 #include "footsteps_planner.h"
-namespace mc_plugin
-{
-namespace footsteps_planner
+
+namespace mc_plugin::footsteps_planner
 {
 
 FootStepGen::FootStepGen()
@@ -16,7 +15,6 @@ FootStepGen::FootStepGen(const mc_rtc::Configuration & config)
 
 void FootStepGen::reconfigure(const mc_rtc::Configuration & config)
 {
-  mc_rtc::log::info("footsteps_planner::init called with configuration:\n{}", config.dump(true, true));
   if(config.has("Ts_limit"))
   {
     Eigen::Vector2d Ts_range = config("Ts_limit");
@@ -63,5 +61,4 @@ void FootStepGen::reconfigure(const mc_rtc::Configuration & config)
   P_ = (int)(Tp_ / delta_);
 }
 
-} // namespace footsteps_planner
-} // namespace mc_plugin
+} // namespace mc_plugin::footsteps_planner

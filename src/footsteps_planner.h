@@ -1,15 +1,12 @@
 #pragma once
-#include <mc_control/mc_controller.h>
-#include "eigen-quadprog/QuadProg.h"
-#include "eigen-quadprog/eigen_quadprog_api.h"
-#include "polynomials.h"
-#include <chrono>
-#include <ctime>
-#include <eigen3/Eigen/Dense>
 
-namespace mc_plugin
-{
-namespace footsteps_planner
+#include <mc_control/mc_controller.h>
+
+#include <ctime>
+
+#include "polynomials.h"
+
+namespace mc_plugin::footsteps_planner
 {
 
 struct Admissible_Region
@@ -47,28 +44,28 @@ public:
 
     std::vector<Eigen::Vector3d> Polygone_Corners = {upper_left_corner, upper_right_corner, lower_right_corner,
                                                      lower_left_corner};
-    Polygone_Normals.resize(2, Polygone_Corners.size());
-    Polygone_Edges_Center.resize(2, Polygone_Corners.size());
-    Polygone_Vertices.resize(2, Polygone_Corners.size());
-    Offset.resize(Polygone_Corners.size());
+    Polygone_Normals.resize(2, static_cast<Eigen::Index>(Polygone_Corners.size()));
+    Polygone_Edges_Center.resize(2, Polygone_Normals.cols());
+    Polygone_Vertices.resize(2, Polygone_Normals.cols());
+    Offset.resize(Polygone_Normals.cols());
     for(size_t c = 0; c < Polygone_Corners.size(); c++)
     {
       Eigen::Vector3d point_1 = Polygone_Corners[c];
       Eigen::Vector3d point_2 = Polygone_Corners[(c + 1) % Polygone_Corners.size()];
       Eigen::Vector3d vertice = (point_2 - point_1).normalized();
       Eigen::Vector3d normal = Eigen::Vector3d{0, 0, 1}.cross(vertice).normalized();
-      Polygone_Normals(0, c) = normal.x();
-      Polygone_Normals(1, c) = normal.y();
-      Polygone_Vertices(0, c) = vertice.x();
-      Polygone_Vertices(1, c) = vertice.y();
+      Polygone_Normals(0, static_cast<Eigen::Index>(c)) = normal.x();
+      Polygone_Normals(1, static_cast<Eigen::Index>(c)) = normal.y();
+      Polygone_Vertices(0, static_cast<Eigen::Index>(c)) = vertice.x();
+      Polygone_Vertices(1, static_cast<Eigen::Index>(c)) = vertice.y();
 
       Eigen::Matrix2d R_Vertices_0;
-      R_Vertices_0(0, 0) = Polygone_Normals(0, c);
-      R_Vertices_0(1, 0) = Polygone_Vertices(0, c);
-      R_Vertices_0(1, 0) = Polygone_Normals(1, c);
-      R_Vertices_0(1, 1) = Polygone_Vertices(1, c);
+      R_Vertices_0(0, 0) = Polygone_Normals(0, static_cast<Eigen::Index>(c));
+      R_Vertices_0(1, 0) = Polygone_Vertices(0, static_cast<Eigen::Index>(c));
+      R_Vertices_0(1, 0) = Polygone_Normals(1, static_cast<Eigen::Index>(c));
+      R_Vertices_0(1, 1) = Polygone_Vertices(1, static_cast<Eigen::Index>(c));
 
-      Offset(c) = (R_Vertices_0.transpose() * Eigen::Vector2d{point_1.x(), point_1.y()}).x();
+      Offset(static_cast<Eigen::Index>(c)) = (R_Vertices_0.transpose() * Eigen::Vector2d{point_1.x(), point_1.y()}).x();
     }
   }
   ~Admissible_Region() = default;
@@ -121,7 +118,7 @@ struct ref_traj_point
   }
   ~ref_traj_point() = default;
 
-  const Eigen::Vector2d & pose()
+  const Eigen::Vector2d & pose() const noexcept
   {
     return pose_;
   }
@@ -134,11 +131,11 @@ struct ref_traj_point
     Eigen::Vector3d center{pose_.x(), pose_.y(), 0.};
     return sva::PTransformd(sva::RotZ(ori_), center);
   }
-  double ori()
+  double ori() const noexcept
   {
     return ori_;
   }
-  Eigen::Vector3d rpy_ori()
+  Eigen::Vector3d rpy_ori() const noexcept
   {
     return Eigen::Vector3d{0., 0., ori_};
   }
@@ -208,10 +205,10 @@ struct Footsteps_plan
 
 public:
   Footsteps_plan() = default;
-  Footsteps_plan(const Footstep support_foot,
-                 const std::string supportFoot_name,
-                 const Footstep initial_swing_foot,
-                 const std::vector<Footstep> footsteps)
+  Footsteps_plan(const Footstep & support_foot,
+                 std::string_view supportFoot_name,
+                 const Footstep & initial_swing_foot,
+                 const std::vector<Footstep> & footsteps)
   {
     footsteps_ = footsteps;
     support_foot_name(supportFoot_name);
@@ -222,7 +219,7 @@ public:
 
   void add(Footstep step)
   {
-    int i = 0;
+    size_t i = 0;
     if(support_foot_name_ == "LeftFoot")
     {
       i = 1;
@@ -293,9 +290,10 @@ public:
   {
     return footsteps_[indx];
   }
-  void support_foot(Footstep & footstep)
+  void support_foot(const Footstep & footstep)
   {
     support_foot_no_offset = footstep;
+    support_foot_ = footstep;
     if((footstep.pose() - support_foot_.pose()).norm() > 1e-3 && std::abs(footstep.ori() - support_foot_.ori()) > 1e-3
        && !offset_applied)
     {
@@ -308,12 +306,11 @@ public:
       {
         sgn *= -1;
       }
-      footstep.ori(footstep.ori() - sgn * ori_offset_);
+      support_foot_.ori(footstep.ori() - sgn * ori_offset_);
     }
-    support_foot_ = footstep;
   }
 
-  const double & ori_offset() noexcept
+  double ori_offset() const noexcept
   {
     return ori_offset_;
   }
@@ -327,7 +324,7 @@ public:
     ori_offset_ = theta;
   }
 
-  void support_foot_name(const std::string & name) noexcept
+  void support_foot_name(std::string_view name) noexcept
   {
     support_foot_name_ = name;
   }
@@ -363,11 +360,11 @@ public:
    * @tparam Tstep desired ordered Steps Timing (can be empty)
    * @tparam Pf desired ordered Footsteps coordinate (can be empty) (angle in z coordinate)
    */
-  void init(std::string supportFootName,
-            Footstep P_f0,
-            const std::vector<sva::MotionVecd> V,
-            const std::vector<double> Tstep,
-            std::vector<Footstep> ref_pose);
+  void init(std::string_view supportFootName,
+            const Footstep & P_f0,
+            const std::vector<sva::MotionVecd> & V,
+            const std::vector<double> & Tstep,
+            const std::vector<Footstep> & ref_pose);
 
   void reconfigure(const mc_rtc::Configuration & config);
 
@@ -396,12 +393,12 @@ public:
   // Compute The Footsteps and the Steps Timings
   Footsteps_plan compute_plan();
 
-  Footsteps_plan & footsteps_plan()
+  Footsteps_plan & footsteps_plan() noexcept
   {
     return plan_;
   }
 
-  const int & Get_Nsteps() const
+  Eigen::Index Get_Nsteps() const noexcept
   {
     return N_steps;
   }
@@ -416,7 +413,7 @@ private:
    * Compute N points trajectory between P_s_0 and P_s_1
    * @return Points Coordonate and angle of the trajectory
    */
-  std::vector<ref_traj_point> GetRefTrajectory(ref_traj_point & P_s_0, ref_traj_point & P_s_1, const double duration);
+  std::vector<ref_traj_point> GetRefTrajectory(ref_traj_point & P_s_0, ref_traj_point & P_s_1, double duration);
 
   std::vector<std::vector<double>> GetVelocityProfile(const Eigen::Vector3d & P_s_0,
                                                       double V_Max,
@@ -443,8 +440,8 @@ private:
   std::vector<double> t_steps_inputs_; // Input Step Timing
   std::vector<sva::MotionVecd> v_inputs_; // Velocity input
 
-  int F_ = 1; // footsteps number
-  int N_steps = -1;
+  Eigen::Index F_ = 1; // footsteps number
+  Eigen::Index N_steps = -1;
 
   std::vector<double> StepsTimings_; // Contains the time of each steps
   std::vector<size_t> StepsTimings_indx_; // Index timing of each steps
@@ -486,5 +483,4 @@ public:
   Eigen::Vector3d v_ref_ = Eigen::Vector3d::Zero();
 };
 
-} // namespace footsteps_planner
-} // namespace mc_plugin
+} // namespace mc_plugin::footsteps_planner

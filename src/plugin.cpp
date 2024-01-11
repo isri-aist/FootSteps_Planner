@@ -126,16 +126,6 @@ void footsteps_planner_plugin::gui(mc_control::MCGlobalController & controller)
             p.segment(0, 2) = this->planner_.intersec;
             return p;
           })
-
-      // mc_rtc::gui::Polygon("Steps", mc_rtc::gui::Color(0., 1., 0.),
-      //                      [this]() -> std::vector<std::vector<Eigen::Vector3d>> {
-      //                        return this->planner_.footsteps_plan().get_steps_corners();
-      //                      })
-
-      // mc_rtc::gui::Point3D(
-      // "Steps", mc_rtc::gui::Color(0., 1., 0.),
-      // [this]() -> std::vector<Eigen::Vector3d>  { return this->planner_.footsteps_plan().steps_pose(); })
-
   );
 }
 
@@ -147,6 +137,7 @@ mc_control::GlobalPlugin::GlobalPluginConfiguration footsteps_planner_plugin::co
   out.should_always_run = true;
   return out;
 }
+
 } // namespace mc_plugin
 
 EXPORT_MC_RTC_PLUGIN("footsteps_planner_plugin", mc_plugin::footsteps_planner_plugin)

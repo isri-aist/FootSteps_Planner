@@ -137,14 +137,12 @@ struct PolynomialBase
     {
       return t_guess;
     }
-    else if(l_guess < length)
+    if(l_guess < length)
     {
       return arcLengthInverse(t_guess, length - l_guess, 2. * t_guess - t_start);
     }
-    else // (l_guess > length)
-    {
-      return arcLengthInverse(t_start, length, (t_guess + t_start) / 2.);
-    }
+    // (l_guess > length)
+    return arcLengthInverse(t_start, length, (t_guess + t_start) / 2.);
   }
 };
 
