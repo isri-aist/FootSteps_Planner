@@ -25,9 +25,12 @@ void footsteps_planner_plugin::reset(mc_control::MCGlobalController & controller
   auto & ctl = controller.controller();
   controller.controller().datastore().make_call("footsteps_planner::compute_plan",
                                                 [this, &ctl]() { compute_footsteps_plan(ctl); });
-  controller.controller().datastore().make_call(
-      "footsteps_planner::configure",
-      [this](const mc_rtc::Configuration & config) {config_.load(config) ; planner_ = mc_plugin::footsteps_planner::FootStepGen(config_); });
+  controller.controller().datastore().make_call("footsteps_planner::configure",
+                                                [this](const mc_rtc::Configuration & config)
+                                                {
+                                                  config_.load(config);
+                                                  planner_ = mc_plugin::footsteps_planner::FootStepGen(config_);
+                                                });
 
   if(controller.controller().config().has("footsteps_planner"))
   {
@@ -39,7 +42,7 @@ void footsteps_planner_plugin::reset(mc_control::MCGlobalController & controller
   }
 
   planner_ = mc_plugin::footsteps_planner::FootStepGen(config_);
-  
+
   gui(controller);
 }
 
@@ -59,10 +62,9 @@ void footsteps_planner_plugin::compute_footsteps_plan(mc_control::MCController &
 
   for(size_t k = 0; k < ref_pose.size(); k++)
   {
-    input_ref_pose.push_back(
-        mc_plugin::footsteps_planner::Footstep(ref_pose[k], 0, size));
+    input_ref_pose.push_back(mc_plugin::footsteps_planner::Footstep(ref_pose[k], 0, size));
   }
-  
+
   planner_.init(support_foot_name, support_footstep, input_v, input_t_steps, input_ref_pose);
 
   planner_.compute_plan();
@@ -96,33 +98,35 @@ void footsteps_planner_plugin::gui(mc_control::MCGlobalController & controller)
           mc_rtc::gui::FormNumberInput("offset_angle_deg", false,
                                        [this]() { return planner_.theta_offset_ * 180 / mc_rtc::constants::PI; })));
 
-
   controller.controller().gui()->addElement(
-      {"Footsteps Planner","Visuals"}, mc_rtc::gui::Trajectory("Trajectory", mc_rtc::gui::Color(1., 1., 0.),
-                                                    [this]() -> std::vector<Eigen::Vector3d> {
-                                                      return planner_.ref_traj(centered_ref_trajectory_);
-                                                    }),
+      {"Footsteps Planner", "Visuals"},
+      mc_rtc::gui::Trajectory("Trajectory", mc_rtc::gui::Color(1., 1., 0.),
+                              [this]() -> std::vector<Eigen::Vector3d>
+                              { return planner_.ref_traj(centered_ref_trajectory_); }),
       mc_rtc::gui::Point3D(
-      "Intersec", mc_rtc::gui::Color(0., 1., 0.),
-      [this]() -> Eigen::Vector3d { return Eigen::Vector3d{this->planner_.intersec.x(),this->planner_.intersec.y(),0}; } ,
-        [this](const Eigen::Vector3d & p) {this->planner_.intersec = p.segment(0,2);}),
+          "Intersec", mc_rtc::gui::Color(0., 1., 0.),
+          [this]() -> Eigen::Vector3d {
+            return Eigen::Vector3d{this->planner_.intersec.x(), this->planner_.intersec.y(), 0};
+          },
+          [this](const Eigen::Vector3d & p) { this->planner_.intersec = p.segment(0, 2); }),
 
-      mc_rtc::gui::Label("r",[this]() -> double {return this->planner_.r.norm();}),
+      mc_rtc::gui::Label("r", [this]() -> double { return this->planner_.r.norm(); }),
 
-      mc_rtc::gui::Arrow("Dist",[this]() -> Eigen::Vector3d {Eigen::Vector3d p = Eigen::Vector3d::Zero(); p.segment(0,2) = this->planner_.intersec - this->planner_.r; return p;},
-                                [this]() -> Eigen::Vector3d {Eigen::Vector3d p = Eigen::Vector3d::Zero(); p.segment(0,2) = this->planner_.intersec; return p;})
-
-      // mc_rtc::gui::Polygon("Steps", mc_rtc::gui::Color(0., 1., 0.),
-      //                      [this]() -> std::vector<std::vector<Eigen::Vector3d>> {
-      //                        return this->planner_.footsteps_plan().get_steps_corners();
-      //                      })
-
-      // mc_rtc::gui::Point3D(
-      // "Steps", mc_rtc::gui::Color(0., 1., 0.),
-      // [this]() -> std::vector<Eigen::Vector3d>  { return this->planner_.footsteps_plan().steps_pose(); })
-
+      mc_rtc::gui::Arrow(
+          "Dist",
+          [this]() -> Eigen::Vector3d
+          {
+            Eigen::Vector3d p = Eigen::Vector3d::Zero();
+            p.segment(0, 2) = this->planner_.intersec - this->planner_.r;
+            return p;
+          },
+          [this]() -> Eigen::Vector3d
+          {
+            Eigen::Vector3d p = Eigen::Vector3d::Zero();
+            p.segment(0, 2) = this->planner_.intersec;
+            return p;
+          })
   );
-
 }
 
 mc_control::GlobalPlugin::GlobalPluginConfiguration footsteps_planner_plugin::configuration()
@@ -133,6 +137,7 @@ mc_control::GlobalPlugin::GlobalPluginConfiguration footsteps_planner_plugin::co
   out.should_always_run = true;
   return out;
 }
+
 } // namespace mc_plugin
 
 EXPORT_MC_RTC_PLUGIN("footsteps_planner_plugin", mc_plugin::footsteps_planner_plugin)

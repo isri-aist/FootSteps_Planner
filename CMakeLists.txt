@@ -1,12 +1,14 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 set(PROJECT_NAME footsteps_planner_plugin)
 set(PROJECT_DESCRIPTION "")
 set(PROJECT_URL "")
 set(PROJECT_VERSION 0.0.1)
 set(PROJECT_USE_CMAKE_EXPORT FALSE)
-set(CMAKE_CXX_STANDARD 11)
-set(CXX_DISABLE_WERROR True)
+set(PROJECT_GENERATED_HEADERS_SKIP_CONFIG ON)
+set(PROJECT_GENERATED_HEADERS_SKIP_DEPRECATED ON)
+set(PROJECT_GENERATED_HEADERS_SKIP_WARNING ON)
+set(CMAKE_CXX_STANDARD 17)
 
 include(cmake/base.cmake)
 
@@ -35,9 +37,3 @@ set(plugin_HDR
 
 # The add_plugin macro is provided by mc_rtc
 add_plugin(${PROJECT_NAME} "${plugin_SRC}" "${plugin_HDR}")
-
-
-
-
-
-

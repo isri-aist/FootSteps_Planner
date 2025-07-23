@@ -1,7 +1,7 @@
 mc_rtc Foot steps planner plugin
 ==
 
-This plugin generate velocity based footsteps for walking pattern generation 
+This plugin generate velocity based footsteps for walking pattern generation
 
 ## Dependencie
 
@@ -13,7 +13,7 @@ This plugin generate velocity based footsteps for walking pattern generation
 cd Footsteps_Planner
 mkdir build && cd build
 cmake ..
-make 
+make
 sudo make install
 ```
 ## Using the Foot step Planner

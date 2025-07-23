@@ -1,4 +1,4 @@
-name: CI of NewPlugin
+name: CI of FootSteps_Planner
 
 on:
   push:
@@ -12,29 +12,16 @@ on:
     - cron: '0 23 * * 0,1,4'
 
 jobs:
-
-  clang-format:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install clang-format-10
-      run: |
-        sudo apt-get -qq update
-        sudo apt-get -qq install clang-format-10
-    - name: Run clang-format-check
-      run: |
-        ./.clang-format-check.sh
-
   build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04, ubuntu-22.04]
         build-type: [RelWithDebInfo]
         compiler: [gcc]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Install dependencies
