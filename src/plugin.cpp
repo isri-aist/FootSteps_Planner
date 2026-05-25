@@ -13,24 +13,39 @@ void footsteps_planner_plugin::init(mc_control::MCGlobalController & controller,
 
 void footsteps_planner_plugin::reset(mc_control::MCGlobalController & controller)
 {
+  auto & ds = controller.controller().datastore();
 
-  controller.controller().datastore().make<std::vector<sva::MotionVecd>>("footsteps_planner::input_vel");
-  controller.controller().datastore().make<std::vector<sva::PTransformd>>("footsteps_planner::input_ref_pose");
-  controller.controller().datastore().make<std::vector<double>>("footsteps_planner::input_time_steps");
-  controller.controller().datastore().make<std::string>("footsteps_planner::support_foot_name");
-  controller.controller().datastore().make<sva::PTransformd>("footsteps_planner::support_foot_pose");
-  controller.controller().datastore().make<std::vector<sva::PTransformd>>("footsteps_planner::output_steps");
-  controller.controller().datastore().make<std::vector<double>>("footsteps_planner::output_time_steps");
+  if(!ds.has("footsteps_planner::input_vel"))
+    ds.make<std::vector<sva::MotionVecd>>("footsteps_planner::input_vel");
+  if(!ds.has("footsteps_planner::input_ref_pose"))
+    ds.make<std::vector<sva::PTransformd>>("footsteps_planner::input_ref_pose");
+  if(!ds.has("footsteps_planner::input_time_steps"))
+    ds.make<std::vector<double>>("footsteps_planner::input_time_steps");
+  if(!ds.has("footsteps_planner::support_foot_name"))
+    ds.make<std::string>("footsteps_planner::support_foot_name");
+  if(!ds.has("footsteps_planner::support_foot_pose"))
+    ds.make<sva::PTransformd>("footsteps_planner::support_foot_pose");
+  if(!ds.has("footsteps_planner::output_steps"))
+    ds.make<std::vector<sva::PTransformd>>("footsteps_planner::output_steps");
+  if(!ds.has("footsteps_planner::output_time_steps"))
+    ds.make<std::vector<double>>("footsteps_planner::output_time_steps");
 
   auto & ctl = controller.controller();
-  controller.controller().datastore().make_call("footsteps_planner::compute_plan",
-                                                [this, &ctl]() { compute_footsteps_plan(ctl); });
-  controller.controller().datastore().make_call("footsteps_planner::configure",
-                                                [this](const mc_rtc::Configuration & config)
-                                                {
-                                                  config_.load(config);
-                                                  planner_ = mc_plugin::footsteps_planner::FootStepGen(config_);
-                                                });
+  
+  if(ds.has("footsteps_planner::compute_plan"))
+    ds.remove("footsteps_planner::compute_plan");
+
+  ds.make_call("footsteps_planner::compute_plan", [this, &ctl]() { compute_footsteps_plan(ctl); });
+
+  if(ds.has("footsteps_planner::configure"))
+    ds.remove("footsteps_planner::configure");
+
+  ds.make_call("footsteps_planner::configure",
+               [this](const mc_rtc::Configuration & config)
+               {
+                 config_.load(config);
+                 planner_ = mc_plugin::footsteps_planner::FootStepGen(config_);
+               });
 
   if(controller.controller().config().has("footsteps_planner"))
   {
@@ -43,6 +58,9 @@ void footsteps_planner_plugin::reset(mc_control::MCGlobalController & controller
 
   planner_ = mc_plugin::footsteps_planner::FootStepGen(config_);
 
+  auto & gui_ptr = *controller.controller().gui();
+  gui_ptr.removeCategory({"Footsteps Planner", "Configuration"});
+  gui_ptr.removeCategory({"Footsteps Planner", "Visuals"});
   gui(controller);
 }
 
