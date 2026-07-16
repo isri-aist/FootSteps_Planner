@@ -1,19 +1,19 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 
-set(PROJECT_NAME footsteps_planner_plugin)
-set(PROJECT_DESCRIPTION "")
-set(PROJECT_URL "")
-set(PROJECT_VERSION 0.0.1)
-set(PROJECT_USE_CMAKE_EXPORT FALSE)
-set(PROJECT_GENERATED_HEADERS_SKIP_CONFIG ON)
-set(PROJECT_GENERATED_HEADERS_SKIP_DEPRECATED ON)
-set(PROJECT_GENERATED_HEADERS_SKIP_WARNING ON)
 set(CMAKE_CXX_STANDARD 17)
 
-include(cmake/base.cmake)
+include(cmake/get-jrl-cmakemodules.cmake)
 
-project(${PROJECT_NAME} LANGUAGES CXX VERSION ${PROJECT_VERSION})
-option(AUTOLOAD_${PROJECT_NAME}_PLUGIN "Automatically load ${PROJECT_NAME} plugin" OFF)
+project(footsteps_planner_plugin
+  VERSION 0.0.1
+  LANGUAGES CXX
+)
+jrl_configure_defaults()
+
+###########
+# OPTIONS
+###########
+jrl_option(AUTOLOAD_${PROJECT_NAME}_PLUGIN "Automatically load ${PROJECT_NAME} plugin" OFF)
 
 # Find mc_rtc if we are not building inside mc_rtc itself
 if(NOT TARGET mc_rtc::mc_control)

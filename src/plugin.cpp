@@ -125,8 +125,7 @@ void footsteps_planner_plugin::gui(mc_control::MCGlobalController & controller)
             Eigen::Vector3d p = Eigen::Vector3d::Zero();
             p.segment(0, 2) = this->planner_.intersec;
             return p;
-          })
-  );
+          }));
 }
 
 mc_control::GlobalPlugin::GlobalPluginConfiguration footsteps_planner_plugin::configuration()
