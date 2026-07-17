@@ -1,8 +1,7 @@
 {
   description = "footsteps-planner-plugin";
 
-  #inputs.mc-rtc-nix.url = "github:mc-rtc/nixpkgs";
-  inputs.mc-rtc-nix.url = "path:/home/arnaud/devel/mc-rtc-nix/nixpkgs";
+  inputs.mc-rtc-nix.url = "github:mc-rtc/nixpkgs";
 
   outputs =
     inputs:
